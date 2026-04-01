@@ -23,9 +23,33 @@
       text-align: center;
       pointer-events: none;
     }
+    #scan-ok {
+      position: fixed;
+      top: max(16px, env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%) scale(0.92);
+      z-index: 11;
+      padding: 10px 20px;
+      font: 15px/1.4 system-ui, sans-serif;
+      font-weight: 600;
+      color: #fff;
+      background: #0d7d5c;
+      border-radius: 999px;
+      box-shadow: 0 4px 20px rgba(13,125,92,.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .25s ease, transform .25s ease, visibility .25s;
+    }
+    #scan-ok.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) scale(1);
+    }
   </style>
 </head>
 <body>
+  <div id="scan-ok" role="status" aria-live="polite">识别成功</div>
   <div id="hint">
     ① 先用 <strong>系统浏览器</strong>（Safari/Chrome）打开<strong>本页</strong>并允许摄像头<br />
     ② 再对准<strong>打印或另一台设备全屏</strong>的 Hiro 图，勿用微信扫图<br />
@@ -48,7 +72,7 @@
       ></video>
     </a-assets>
 
-    <a-marker preset="hiro">
+    <a-marker id="hiro-marker" preset="hiro" emitevents="true">
       <!-- 视频平铺在标记上；宽高比可按你的视频改 width/height -->
       <a-video
         src="#arvideo"
@@ -69,5 +93,22 @@
 
     <a-entity camera></a-entity>
   </a-scene>
+  <script>
+    (function () {
+      var toast = document.getElementById('scan-ok');
+      function showOk() { toast.classList.add('is-visible'); }
+      function hideOk() { toast.classList.remove('is-visible'); }
+
+      var scene = document.querySelector('a-scene');
+      if (!scene) return;
+
+      scene.addEventListener('loaded', function () {
+        var marker = document.getElementById('hiro-marker');
+        if (!marker) return;
+        marker.addEventListener('markerFound', showOk);
+        marker.addEventListener('markerLost', hideOk);
+      });
+    })();
+  </script>
 </body>
 </html>
