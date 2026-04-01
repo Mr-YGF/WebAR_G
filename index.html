@@ -26,29 +26,32 @@
   </style>
 </head>
 <body>
-  <div id="hint">将摄像头对准下方的 Hiro 标记图案，即可在标记上叠加视频</div>
+  <div id="hint">
+    ① 先用 <strong>系统浏览器</strong>（Safari/Chrome）打开<strong>本页</strong>并允许摄像头<br />
+    ② 再对准<strong>打印或另一台设备全屏</strong>的 Hiro 图，勿用微信扫图<br />
+    ③ 图要平、够大、光线均匀；识别到会叠视频与绿盒子
+  </div>
   <a-scene
     embedded
-    arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    arjs="trackingMethod: best; sourceType: webcam; videoTexture: true; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
     renderer="logarithmicDepthBuffer: true;"
   >
     <a-assets>
-      <!-- 可换成你自己的 mp4/webm（与网页同域最稳，例如推 GitHub 后放在 assets/ 里） -->
       <video
         id="arvideo"
-        src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm"
+        src="assets/test.mp4"
         autoplay
         loop
         muted
         playsinline
-        crossorigin="anonymous"
+        preload="auto"
       ></video>
     </a-assets>
 
     <a-marker preset="hiro">
       <!-- 视频平铺在标记上；宽高比可按你的视频改 width/height -->
       <a-video
-        src="assets/test.mp4"
+        src="#arvideo"
         width="1.6"
         height="0.9"
         position="0 0.02 0"
