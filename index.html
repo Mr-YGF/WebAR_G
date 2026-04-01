@@ -61,7 +61,8 @@
     arjs="trackingMethod: best; sourceType: webcam; videoTexture: true; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
     renderer="logarithmicDepthBuffer: true;"
   >
-    <a-assets>
+    <!-- timeout：视频加载失败/很慢时仍会启动 AR，否则会一直等素材 -->
+    <a-assets timeout="5000">
       <video
         id="arvideo"
         src="assets/test.mp4"
@@ -69,12 +70,22 @@
         loop
         muted
         playsinline
-        preload="auto"
+        webkit-playsinline
+        preload="metadata"
       ></video>
     </a-assets>
 
     <a-marker id="hiro-marker" preset="hiro" emitevents="true">
-      <!-- 视频平铺在标记上；宽高比可按你的视频改 width/height -->
+      <!-- 纯色平面：不依赖视频解码，用于确认「标记已识别」 -->
+      <a-plane
+        position="0 0.01 0"
+        rotation="-90 0 0"
+        width="1.6"
+        height="0.9"
+        color="#ff3355"
+        material="transparent: false"
+      ></a-plane>
+      <!-- 视频叠在红色底上；若 mp4 无法播放至少能看到红底+盒子 -->
       <a-video
         src="#arvideo"
         width="1.6"
@@ -97,18 +108,24 @@
   <script>
     (function () {
       var toast = document.getElementById('scan-ok');
-      function showOk() { toast.classList.add('is-visible'); }
-      function hideOk() { toast.classList.remove('is-visible'); }
+      var vid = document.getElementById('arvideo');
+      function showOk() {
+        toast.classList.add('is-visible');
+        if (vid && vid.play) vid.play().catch(function () {});
+      }
+      function hideOk() {
+        toast.classList.remove('is-visible');
+      }
 
-      var scene = document.querySelector('a-scene');
-      if (!scene) return;
+      /* AR.js 3.x 会在 window 上派发 markerFound / markerLost（仅靠 a-marker 监听常收不到） */
+      window.addEventListener('markerFound', showOk);
+      window.addEventListener('markerLost', hideOk);
 
-      scene.addEventListener('loaded', function () {
-        var marker = document.getElementById('hiro-marker');
-        if (!marker) return;
+      var marker = document.getElementById('hiro-marker');
+      if (marker) {
         marker.addEventListener('markerFound', showOk);
         marker.addEventListener('markerLost', hideOk);
-      });
+      }
     })();
   </script>
 </body>
