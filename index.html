@@ -47,21 +47,46 @@
       visibility: visible;
       transform: translateX(-50%) scale(1);
     }
+    #fix-black {
+      position: fixed;
+      top: max(52px, env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 12;
+      font: 13px system-ui, sans-serif;
+      pointer-events: auto;
+    }
+    #fix-black button {
+      font: inherit;
+      padding: 8px 14px;
+      border: 0;
+      border-radius: 8px;
+      background: rgba(0,0,0,.65);
+      color: #fff;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <div id="scan-ok" role="status" aria-live="polite">识别成功</div>
+  <div id="fix-black"><button type="button" id="wake-camera">画面黑屏？点一下并允许摄像头</button></div>
   <div id="hint">
-    ① 先用 <strong>系统浏览器</strong>（Safari/Chrome）打开<strong>本页</strong>并允许摄像头<br />
-    ② 再对准 Hiro 图：本仓库 <a href="print-hiro.html" style="color:#9ef;">print-hiro.html</a> 或 <a href="assets/hiro-marker.jpg" style="color:#9ef;">assets/hiro-marker.jpg</a>，勿用微信扫图<br />
-    ③ 图要平、够大、光线均匀；识别到会叠视频与绿盒子
+    ① 先用 <strong>Safari / Chrome</strong> 打开本页（勿用微信内置浏览器）<br />
+    ② Hiro 图：<a href="print-hiro.html" style="color:#9ef;">print-hiro.html</a>
+    ③ 打印或大屏显示；对准后应出现<strong>红色面片</strong>与提示<br />
+    ④ 追加点「<strong>?debug=1</strong>」可开 AR.js 调试层
   </div>
+  <!--
+    重要：Hiro 是「图案 marker」，必须用 detectionMode: mono（默认也是 mono）。
+    若写 mono_and_matrix + matrixCodeType，是给「条码 marker」用的，Hiro 会永远识别不到。
+  -->
   <a-scene
     embedded
-    arjs="trackingMethod: best; sourceType: webcam; videoTexture: true; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    vr-mode-ui="enabled: false"
+    style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0;"
+    arjs="trackingMethod: best; sourceType: webcam; videoTexture: true; detectionMode: mono; debugUIEnabled: false;"
     renderer="logarithmicDepthBuffer: true;"
   >
-    <!-- timeout：视频加载失败/很慢时仍会启动 AR，否则会一直等素材 -->
     <a-assets timeout="5000">
       <video
         id="arvideo"
@@ -76,16 +101,13 @@
     </a-assets>
 
     <a-marker id="hiro-marker" preset="hiro" emitevents="true">
-      <!-- 纯色平面：不依赖视频解码，用于确认「标记已识别」 -->
       <a-plane
         position="0 0.01 0"
         rotation="-90 0 0"
         width="1.6"
         height="0.9"
         color="#ff3355"
-        material="transparent: false"
       ></a-plane>
-      <!-- 视频叠在红色底上；若 mp4 无法播放至少能看到红底+盒子 -->
       <a-video
         src="#arvideo"
         width="1.6"
@@ -93,7 +115,6 @@
         position="0 0.02 0"
         rotation="-90 0 0"
       ></a-video>
-      <!-- 简单“特效”：半透明描边盒子 -->
       <a-box
         position="0 0.5 0"
         width="1.6"
@@ -105,10 +126,20 @@
 
     <a-entity camera></a-entity>
   </a-scene>
+
   <script>
     (function () {
+      var params = new URLSearchParams(location.search);
+      if (params.get('debug') === '1') {
+        var scene = document.querySelector('a-scene');
+        if (scene) scene.setAttribute('arjs', 'trackingMethod: best; sourceType: webcam; videoTexture: true; detectionMode: mono; debugUIEnabled: true;');
+      }
+
       var toast = document.getElementById('scan-ok');
       var vid = document.getElementById('arvideo');
+      var wakeBtn = document.getElementById('wake-camera');
+      var fixWrap = document.getElementById('fix-black');
+
       function showOk() {
         toast.classList.add('is-visible');
         if (vid && vid.play) vid.play().catch(function () {});
@@ -117,7 +148,6 @@
         toast.classList.remove('is-visible');
       }
 
-      /* AR.js 3.x 会在 window 上派发 markerFound / markerLost（仅靠 a-marker 监听常收不到） */
       window.addEventListener('markerFound', showOk);
       window.addEventListener('markerLost', hideOk);
 
@@ -126,6 +156,11 @@
         marker.addEventListener('markerFound', showOk);
         marker.addEventListener('markerLost', hideOk);
       }
+
+      wakeBtn.addEventListener('click', function () {
+        if (vid && vid.play) vid.play().catch(function () {});
+        fixWrap.style.display = 'none';
+      });
     })();
   </script>
 </body>
