@@ -23,6 +23,7 @@
       text-align: center;
       pointer-events: none;
     }
+    #hint a { pointer-events: auto; }
     #scan-ok {
       position: fixed;
       top: max(16px, env(safe-area-inset-top));
@@ -52,7 +53,7 @@
   <div id="scan-ok" role="status" aria-live="polite">识别成功</div>
   <div id="hint">
     ① 先用 <strong>系统浏览器</strong>（Safari/Chrome）打开<strong>本页</strong>并允许摄像头<br />
-    ② 再对准<strong>打印或另一台设备全屏</strong>的 Hiro 图，勿用微信扫图<br />
+    ② 再对准 Hiro 图：本仓库 <a href="print-hiro.html" style="color:#9ef;">print-hiro.html</a> 或 <a href="assets/hiro-marker.jpg" style="color:#9ef;">assets/hiro-marker.jpg</a>，勿用微信扫图<br />
     ③ 图要平、够大、光线均匀；识别到会叠视频与绿盒子
   </div>
   <a-scene
